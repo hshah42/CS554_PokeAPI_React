@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 
 const idColumn = 6;
 
@@ -12,7 +12,8 @@ class MachineList extends Component
         this.state = {
             data: undefined,
             pageNumber: undefined,
-            numberOfPages: undefined
+            numberOfPages: undefined,
+            is404: false
         }
     }
 
@@ -50,6 +51,12 @@ class MachineList extends Component
             {
                 numberOfPages = maxNumber - pageNumber;
             }
+            else
+            {
+                numberOfPages = -1;
+                this.setState({ is404: true });
+                return;
+            }
 
             this.setState({ data: response.data, numberOfPages: numberOfPages, pageNumber: pageNumber });
         }
@@ -76,43 +83,54 @@ class MachineList extends Component
         let previous = null;
         let next = null;
 
-        li = this.state.data && this.state.data.results.map(machine => (
-           <li key={machine.url.split("/")[idColumn]} className = "cap-first-letter">
-              <Link to={`/machine/${machine.url.split("/")[idColumn]}`}>{machine.url.split("/")[idColumn]}</Link>
-           </li>
-        ));
-
-        if(this.state.numberOfPages >= 0 && this.state.pageNumber > 0)
+        if(this.state.is404)
         {
-            if(this.state.pageNumber > 1)
-            {
-                let ref = Number(this.state.pageNumber) - 1;
-                previous =  <li><Link to={`/machine/page/${ref}`}>Previous</Link></li>
-            }
-
-            if(this.state.numberOfPages > 0)
-            {
-                let ref = Number(this.state.pageNumber) + 1;
-                next = <li><Link to={`/machine/page/${ref}`}>Next</Link></li>
-            }
+            body = (
+                <div>
+                    <Redirect to="/notfound" status={404}/>
+                </div>
+            )
         }
-
-        body = (
-            <div>
-                <ul className="list-unstyled">
-                    {li}
-                </ul>
-
-                <nav aria-label="Page navigation example">
-                    <ul className="pagination justify-content-center">
-                        {previous}
-                        <li>|</li>
-                        {next}
+        else
+        {
+            li = this.state.data && this.state.data.results.map(machine => (
+                <li key={machine.url.split("/")[idColumn]} className = "cap-first-letter">
+                   <Link to={`/machine/${machine.url.split("/")[idColumn]}`}>{machine.url.split("/")[idColumn]}</Link>
+                </li>
+             ));
+     
+            if(this.state.numberOfPages >= 0 && this.state.pageNumber > 0)
+            {
+                if(this.state.pageNumber > 1)
+                {
+                    let ref = Number(this.state.pageNumber) - 1;
+                    previous =  <li><Link to={`/machine/page/${ref}`}>Previous</Link></li>
+                }
+     
+                if(this.state.numberOfPages > 0)
+                {
+                    let ref = Number(this.state.pageNumber) + 1;
+                    next = <li><Link to={`/machine/page/${ref}`}>Next</Link></li>
+                }
+            }
+     
+            body = (
+                <div>
+                    <ul className="list-unstyled">
+                        {li}
                     </ul>
-                </nav>
-            </div>
-            
-        )
+     
+                    <nav aria-label="Page navigation example">
+                        <ul className="pagination justify-content-center">
+                            {previous}
+                            <li>|</li>
+                            {next}
+                        </ul>
+                    </nav>
+                </div>
+                 
+            )
+        }
 
         return body;
     }

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import { Redirect } from 'react-router-dom';
 
 class MachineDetails extends Component
 {
@@ -8,7 +9,8 @@ class MachineDetails extends Component
         super(props);
         this.state = {
             data: undefined,
-            status: undefined
+            status: undefined,
+            is404: false
         }
     }
 
@@ -21,7 +23,7 @@ class MachineDetails extends Component
         }
         catch(e)
         {
-            console.log(e);
+            this.setState({is404: true});
         }
     }
 
@@ -32,17 +34,30 @@ class MachineDetails extends Component
 
     render()
     {
-        let title = this.state.data && <h2 className="cap-first-letter" >{this.state.data.item.name}</h2>
-        let move =  this.state.data && <p>Move: {this.state.data.move.name}</p>
-        let versionGroup = this.state.data && <p>Version Group: {this.state.data.version_group.name}</p>
+        let body;
 
-        let body = (
-            <div>
-                {title}
-                {move}
-                {versionGroup}
-            </div>
-        )
+        if(this.state.is404)
+        {
+            body = (
+                <div>
+                    <Redirect to="/notfound" status={404}/>
+                </div>
+            )
+        }
+        else
+        {
+            let title = this.state.data && <h2 className="cap-first-letter" >{this.state.data.item.name}</h2>
+            let move =  this.state.data && <p>Move: {this.state.data.move.name}</p>
+            let versionGroup = this.state.data && <p>Version Group: {this.state.data.version_group.name}</p>
+
+            body = (
+                <div>
+                    {title}
+                    {move}
+                    {versionGroup}
+                </div>
+            )
+        }
 
         return body;
     }
